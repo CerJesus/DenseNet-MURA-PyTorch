@@ -29,7 +29,7 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler,
             # Iterate over data.
             for i, data in enumerate(dataloaders[phase]):
                 # get the inputs
-                print(i, end='\r')
+                #print(i, end='\r')
                 inputs = data['images'][0]
                 labels = data['label'].type(torch.FloatTensor)
                 # wrap them in Variable
@@ -105,8 +105,7 @@ def get_metrics(model, criterion, dataloaders, dataset_sizes, phase='valid'):
                     preds = preds.unsqueeze(0)
         running_corrects += torch.sum(preds == labels.data)
         confusion_matrix.add(preds, labels.data)
-
     loss = running_loss / dataset_sizes[phase]
-    acc = running_corrects / dataset_sizes[phase]
+    acc = float(running_corrects) / float(dataset_sizes[phase])
     print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, loss, acc))
     print('Confusion Meter:\n', confusion_matrix.value())
