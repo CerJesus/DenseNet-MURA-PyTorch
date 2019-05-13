@@ -101,6 +101,8 @@ def get_metrics(model, criterion, dataloaders, dataset_sizes, phase='valid'):
         # statistics
         running_loss += loss.data[0] * inputs.size(0)
         preds = (outputs.data > 0.5).type(torch.cuda.FloatTensor)
+        if len(preds.shape) == 0:
+                    preds = preds.unsqueeze(0)
         running_corrects += torch.sum(preds == labels.data)
         confusion_matrix.add(preds, labels.data)
 
