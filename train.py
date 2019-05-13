@@ -47,7 +47,6 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler,
                     loss.backward()
                     optimizer.step()
                 # statistics
-                print(outputs.data)
                 preds = (outputs.data > 0.5).type(torch.cuda.FloatTensor)
                 running_corrects += torch.sum(preds == labels.data)
                 confusion_matrix[phase].add(preds, labels.data)
