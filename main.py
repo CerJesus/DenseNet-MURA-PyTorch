@@ -44,11 +44,11 @@ model = densenet169(pretrained=True)
 model = model.cuda()
 
 criterion = Loss(Wt1, Wt0)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0000001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=1, verbose=True)
 
 # #### Train model
-#model = train_model(model, criterion, optimizer, dataloaders, scheduler, dataset_sizes, num_epochs=1)
+model = train_model(model, criterion, optimizer, dataloaders, scheduler, dataset_sizes, num_epochs=5)
 
 torch.save(model.state_dict(), 'model.pth')
 
