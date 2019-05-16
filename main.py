@@ -3,17 +3,17 @@ import copy
 import pandas as pd
 import torch
 from torch.autograd import Variable
-from densenet import densenet169
+from mvdensenet import densenet169
 from utils import plot_training, n_p, get_count
 from train import train_model, get_metrics
 from pipeline import get_study_level_data, get_dataloaders
 
 # #### load study level dict data
-study_data = get_study_level_data(study_type='XR_WRIST')
+study_data = get_study_level_data(study_type='XR_ELBOW')
 
 # #### Create dataloaders pipeline
 data_cat = ['train', 'valid'] # data categories
-dataloaders = get_dataloaders(study_data, batch_size=1)
+dataloaders = get_dataloaders(study_data, batch_size = 1)
 dataset_sizes = {x: len(study_data[x]) for x in data_cat}
 
 # #### Build model
@@ -35,7 +35,7 @@ class Loss(torch.nn.modules.Module):
         super(Loss, self).__init__()
         self.Wt1 = Wt1
         self.Wt0 = Wt0
-        
+
     def forward(self, inputs, targets, phase):
         loss = - (self.Wt1[phase] * targets * inputs.log() + self.Wt0[phase] * (1 - targets) * (1 - inputs).log())
         return loss
@@ -44,11 +44,11 @@ model = densenet169(pretrained=True)
 model = model.cuda()
 
 criterion = Loss(Wt1, Wt0)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-6)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=1, verbose=True)
 
 # #### Train model
-model = train_model(model, criterion, optimizer, dataloaders, scheduler, dataset_sizes, num_epochs=5)
+model = train_model(model, criterion, optimizer, dataloaders, scheduler, dataset_sizes, num_epochs=10)
 
 torch.save(model.state_dict(), 'model.pth')
 
