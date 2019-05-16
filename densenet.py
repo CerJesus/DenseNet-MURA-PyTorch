@@ -122,7 +122,10 @@ class DenseNet(nn.Module):
     def forward(self, x):
         features = self.features(x)
         out = F.relu(features, inplace=True)
+        #print(out.shape)
         out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1)
+        #print(out.shape)
+        #print("next iteration")
         # out = F.relu(self.classifier(out))
         out = F.sigmoid(self.fc(out))
         return out

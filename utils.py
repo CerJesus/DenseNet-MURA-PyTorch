@@ -27,7 +27,8 @@ def plot_training(costs, accs):
     plt.legend(['train', 'valid'], loc='upper left')
     plt.title('Cost')
     
-    plt.show()
+    #plt.show()
+    plt.savefig('plot_loss.png')
 
 def n_p(x):
     '''convert numpy float to Variable tensor float'''    
