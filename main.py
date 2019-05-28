@@ -9,7 +9,7 @@ from train import train_model, get_metrics
 from pipeline import get_study_level_data, get_dataloaders
 
 # #### load study level dict data
-study_data = get_study_level_data(study_type='XR_ELBOW')
+study_data = get_study_level_data(study_type='XR_WRIST')
 
 # #### Create dataloaders pipeline
 data_cat = ['train', 'valid'] # data categories
@@ -44,7 +44,7 @@ model = densenet169(pretrained=True)
 model = model.cuda()
 
 criterion = Loss(Wt1, Wt0)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.000001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=1, verbose=True)
 
 # #### Train model
