@@ -9,11 +9,11 @@ from train import train_model, get_metrics
 from pipeline import get_study_level_data, get_dataloaders
 
 # #### load study level dict data
-study_data = get_study_level_data(study_type='XR_WRIST')
+study_data = get_study_level_data(study_type='XR_ELBOW')
 
 # #### Create dataloaders pipeline
 data_cat = ['train', 'valid'] # data categories
-dataloaders = get_dataloaders(study_data, batch_size=1)
+dataloaders = get_dataloaders(study_data, batchsize = 1)
 dataset_sizes = {x: len(study_data[x]) for x in data_cat}
 
 # #### Build model
