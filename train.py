@@ -29,7 +29,7 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler,
             # Iterate over data.
             for i, data in enumerate(dataloaders[phase]):
                 # get the inputs
-                #print(i, end='\r')
+                if i % 10 == 0: print(i, end='\r')
                 inputs = data['images'][0]
                 labels = data['label'].type(torch.FloatTensor)
                 # wrap them in Variable
