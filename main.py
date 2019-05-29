@@ -3,7 +3,7 @@ import copy
 import pandas as pd
 import torch
 from torch.autograd import Variable
-from densenet import densenet169
+from mvdensenet import densenet169
 from utils import plot_training, n_p, get_count
 from train import train_model, get_metrics
 from pipeline import get_study_level_data, get_dataloaders
@@ -35,7 +35,7 @@ class Loss(torch.nn.modules.Module):
         super(Loss, self).__init__()
         self.Wt1 = Wt1
         self.Wt0 = Wt0
-        
+
     def forward(self, inputs, targets, phase):
         loss = - (self.Wt1[phase] * targets * inputs.log() + self.Wt0[phase] * (1 - targets) * (1 - inputs).log())
         return loss
