@@ -13,18 +13,18 @@ model_urls = {
     'densenet169': 'https://download.pytorch.org/models/densenet169-b2777c0a.pth',
 }
 
-# def densenet169(pretrained=False, **kwargs):
-#     r"""Densenet-169 model from
-#     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
-#
-#     Args:
-#         pretrained (bool): If True, returns a model pre-trained on ImageNet
-#     """
-#     model = DenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 32, 32),
-#                      **kwargs)
-#     if pretrained:
-#         model.load_state_dict(model_zoo.load_url(model_urls['densenet169']), strict=False)
-#     return model
+def densenet169(pretrained=False, **kwargs):
+    r"""Densenet-169 model from
+    `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+    """
+    model = MultiViewDenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 32, 32),
+                     **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['densenet169']), strict=False)
+    return model
 
 # class _DenseLayer(nn.Sequential):
 #     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate):
@@ -108,6 +108,7 @@ class MultiViewDenseNet(nn.Module):
         # Linear layer
         # self.classifier = nn.Linear(num_features, 1000)
         # self.fc = nn.Linear(1000, 1)
+        self.resizer = nn.Conv2d(1664,512,kernel_size=3,padding=1)
         self.net2 = models.vgg16(pretrained=True).classifier
         self.fc = nn.Linear(num_features, 1)
 
@@ -125,7 +126,11 @@ class MultiViewDenseNet(nn.Module):
         features = self.features(x)
         out = F.relu(features, inplace=True) #(N,1664,7,7)
         out = torch.max(out,0)[0] #(1,1664,7,7)
-        out = self.net2(out).view(out[0],-1)
+        print("out shape after ViewPool:", out.shape)
+        out = self.resizer(out)
+        print("out shape after resizing:", out.shape)
+        out = self.net2(out.view(out.shape[0],-1)).view(out[0],-1)
+        print("out shape after net2:", out.shape)
         #out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1) #(N,1664)
         # out = F.relu(self.classifier(out))
         out = F.sigmoid(self.fc(out))
