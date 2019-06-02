@@ -4,10 +4,12 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 import torchvision.models as models
 from collections import OrderedDict
-from DenseNet import _DenseLayer, _DenseBlock, _Transition
+from densenet import _DenseLayer, _DenseBlock, _Transition
 
 __all__ = ['DenseNet', 'densenet169']
 
+usingVGG=False
+useMaxPool=False
 
 model_urls = {
     'densenet169': 'https://download.pytorch.org/models/densenet169-b2777c0a.pth',
@@ -108,9 +110,24 @@ class MultiViewDenseNet(nn.Module):
         # Linear layer
         # self.classifier = nn.Linear(num_features, 1000)
         # self.fc = nn.Linear(1000, 1)
+        # self.net2 = nn.Sequential(
+        #         nn.Conv2d(num_features,num_features,kernel_size=3),
+        #         nn.Conv2d(num_features,num_features,kernel_size=2,stride=2),
+        #         nn.Conv2d(num_features,num_features,kernel_size=2)
+        #         )
         self.resizer = nn.Conv2d(1664,512,kernel_size=3,padding=1)
+
         self.net2 = models.vgg16(pretrained=True).classifier
-        self.fc = nn.Linear(num_features, 1)
+        if usingVGG:
+            self.net2 = models.vgg16(pretrained=True).classifier
+            self.fc=nn.Linear(1000,1)
+        else:
+            self.net2 = nn.Sequential(
+                    nn.Conv2d(num_features,num_features,kernel_size=3),
+                    nn.Conv2d(num_features,num_features,kernel_size=2,stride=2),
+                    nn.Conv2d(num_features,num_features,kernel_size=2)
+                    )
+            self.fc = nn.Linear(num_features, 1)
 
         # Official init from torch repo.
         for m in self.modules():
@@ -125,13 +142,24 @@ class MultiViewDenseNet(nn.Module):
     def forward(self, x):
         features = self.features(x)
         out = F.relu(features, inplace=True) #(N,1664,7,7)
-        out = torch.max(out,0)[0] #(1,1664,7,7)
-        print("out shape after ViewPool:", out.shape)
-        out = self.resizer(out)
-        print("out shape after resizing:", out.shape)
-        out = self.net2(out.view(out.shape[0],-1)).view(out[0],-1)
-        print("out shape after net2:", out.shape)
+        # print("Out shape after relu: ",out.shape)
+
+        if useMaxPool:
+            out = torch.max(out,0)[0].unsqueeze(0) #(1,1664,7,7)
+        else: #use avgpool
+            out = torch.mean(out,0,keepdim=True)
+
+        if not usingVGG:
+            out = self.net2(out)
+            out = out.squeeze()
+        else:
+            #print("out shape after ViewPool:", out.shape)
+            out = self.resizer(out)
+            #print("out shape after resizing:", out.shape)
+            out = self.net2(out.view((out.shape[0],-1))).view((out.shape[0],-1))
+            #print("out shape after net2:", out.shape)
         #out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1) #(N,1664)
         # out = F.relu(self.classifier(out))
         out = F.sigmoid(self.fc(out))
+        # print("End of iter")
         return out
